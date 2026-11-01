@@ -1,50 +1,65 @@
-name: Build Push-Up 30
+
+name: Build Push-Up 30 APK
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
+    name: Extrair e compilar APK
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Baixar arquivos do repositório
       - name: Baixar repositório
         uses: actions/checkout@v4
 
+      # 2. Extrair o projeto ZIP
       - name: Extrair projeto
         run: |
-          mkdir project
-          unzip PushUp30Widget-projeto.zip -d project
-          cd project/PushUp30Widget
-          echo "PROJECT_DIR=$PWD" >> $GITHUB_ENV
+          mkdir -p project
+          unzip -o PushUp30Widget-projeto.zip -d project
+          echo "PROJECT_DIR=$GITHUB_WORKSPACE/project/PushUp30Widget" >> $GITHUB_ENV
 
+      # 3. Configurar Java
       - name: Configurar Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      # 4. Configurar Gradle
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
+      # 5. Configurar Android SDK
       - name: Configurar Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
-      - name: Instalar SDK
+      # 6. Instalar SDK necessário
+      - name: Instalar SDK Android 35
         run: |
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
+      # 7. Compilar APK
       - name: Compilar APK
         run: |
           cd "$PROJECT_DIR"
           gradle --no-daemon assembleDebug
 
+      # 8. Disponibilizar APK
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
           name: Push-Up-30-APK
           path: project/PushUp30Widget/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+          

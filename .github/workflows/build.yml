@@ -24,6 +24,10 @@ jobs:
           unzip -o PushUp30Widget-projeto.zip -d project
           echo "PROJECT_DIR=$GITHUB_WORKSPACE/project/PushUp30Widget" >> $GITHUB_ENV
 
+      - name: Corrigir import Java
+        run: |
+          sed -i '/import android.app.AppWidgetManager;/d' "$PROJECT_DIR/app/src/main/java/com/nickolas/pushup30/WidgetActionReceiver.java"
+          
       # 3. Configurar Java
       - name: Configurar Java
         uses: actions/setup-java@v4
